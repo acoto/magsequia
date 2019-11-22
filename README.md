@@ -3,6 +3,10 @@ Extension for climate MAG
 
 Getting Started
 ---------------
+- Clone repository
+```
+$ git clone https://github.com/acoto/magsequia.git ext_climate
+```
 
 - Activate the FormShare environment.
 ```
