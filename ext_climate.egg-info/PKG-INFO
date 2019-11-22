@@ -1,0 +1,50 @@
+Metadata-Version: 2.1
+Name: ext-climate
+Version: 0.1
+Summary: Extension for climate MAG
+Home-page: www.myserver.com
+Author: bioversity-acoto
+Author-email: a.coto@cgiar.org
+License: UNKNOWN
+Description: Extension for climate MAG
+        ==============
+        
+        Getting Started
+        ---------------
+        
+        - Activate the FormShare environment.
+        ```
+        $ . ./path/to/FormShare/bin/activate
+        ```
+        
+        - Change directory into your newly created plugin.
+        ```
+        $ cd ext_climate
+        ```
+        
+        - Build the plugin
+        ```
+        $ python setup.py develop
+        ```
+        
+        - Add the plugin to the FormShare list of plugins by editing the following line in development.ini or production.ini
+        ```
+            #formshare.plugins = examplePlugin
+            formshare.plugins = ext_climate
+        ```
+        
+        - Run FormShare again
+        
+        
+        0.1
+        ---
+        
+        - Initial version.
+        
+Keywords: formshare plugin
+Platform: UNKNOWN
+Classifier: Programming Language :: Python
+Classifier: Framework :: Pyramid
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Internet :: WWW/HTTP :: WSGI :: Application
+Provides-Extra: testing

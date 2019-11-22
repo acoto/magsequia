@@ -1,0 +1,76 @@
+{% extends 'dashboard/dashboard.jinja2' %}
+
+{% block title %}
+    <title>ClimMob | Set question values </title>
+{% endblock title %}
+
+
+{% block bodyattributes %} style="background:#f8fafb" {% endblock bodyattributes %}
+
+{% block body %}
+    {% if redirect == False %}
+        <div class="row" style="height: 100%">
+            <div class="col-lg-12 " style="height: 100%">
+                <div class="ibox float-e-margins" style="height: 100%; margin-bottom: 0px">
+
+                    <div class="ibox-title">
+                        <h5>Describe the characteristic for question "{{ qdata.question_desc }}"</h5>
+                        <div class="ibox-tools">
+
+                        </div>
+                    </div>
+                    <div class="ibox-content" style="height: 89%">
+                        <div class="panel panel-info">
+                            <div class="panel-heading">
+                                <i class="fa fa-info-circle"></i> How to describe a characteristic
+                            </div>
+                            <div class="panel-body">
+                                <div style="max-height: 150px; overflow-y: scroll;">
+                                    <p style="margin-bottom: 0.11in; line-height: 108%">A characteristic
+                                        is a type of question that is used to compare two of more
+                                        technologies based on a criterion.
+                                        For example, if the criterion is &ldquo;taste&rdquo; for varieties of
+                                        bean you could do it in the following way:</p>
+
+                                    <p style="margin-left: 0.5in; margin-bottom: 0in; line-height: 100%"><font color="#2f5496">&ldquo;Which
+                                        variety tasted better?&rdquo; </font>and
+                                    </p>
+                                    <p style="margin-left: 0.5in; margin-bottom: 0in; line-height: 100%"><font color="#2f5496">&ldquo;Which
+                                        variety tasted worst?&rdquo;</font></p>
+                                </div>
+                            </div>
+                        </div>
+                        {% snippet 'snippets/error.jinja2', error_summary=error_summary %}
+                        <form class="form-horizontal" role="form" method="post" action="{{ request.path }}">
+                            {% snippet 'snippets/question/values/char-form.jinja2', request=request,qdata=qdata, editable=editable %}
+                            <div class="text-center">
+                                {% if editable %}
+                                    <button type="submit" name="btn_add_char" class="btn btn-primary"> {{ _('Save statements') }}</button>
+                                {% endif%}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock body%}
+
+
+{% block toastr %}
+    {% if withtoastr == true %}
+        {{ super() }}
+    {% else %}
+        {# Overwrite the toaster so it does not trigger the popup #}
+    {% endif %}
+{% endblock toastr %}
+
+
+{% block script %}
+    {% if redirect == True %}
+        {# If a new question is just added or edited then redirect the mainwindo to such project #}
+        <script>
+            window.top.location.href = "{{ request.route_url('qlibrary') }}";
+        </script>
+    {% endif %}
+{% endblock script %}

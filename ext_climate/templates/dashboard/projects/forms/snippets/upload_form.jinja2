@@ -1,0 +1,17 @@
+{% extend_me %}
+
+    {% block upload_form_header %}
+        {% if activeProject.is_climate == 1 %}
+        {{ super() }}
+        <div class="alert alert-warning">
+            Solamente se pueden subir formularios que cumplan con los requisitos para el analisis de sequia
+            <a href="{{ request.url_for_static('template_sequia.zip',"climate") }}"><i
+                    style="margin-left: 10px" class="fas fa-download" title="Formulario de sequia"></i> <span
+                    class="nav-label">{{ _('Descargar template de sequia') }}</span></a>
+        </div>
+            {% else %}
+            {{ super() }}
+        {% endif %}
+
+    {% endblock upload_form_header %}
+

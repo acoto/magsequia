@@ -1,0 +1,6 @@
+[formshare.plugins]
+ext_climate = ext_climate.plugin:ext_climate
+
+[formshare.tasks]
+ext_climate = ext_climate.processes.updateProducts
+

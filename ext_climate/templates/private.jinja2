@@ -1,0 +1,836 @@
+{% extends 'dashboard/page.jinja2' %}
+{% block css %}
+
+
+    {{ super() }}
+    {% cssresource request,"myResource", "chosen" %}
+    {% cssresource request,"formshare", "shuffle" %}
+    {% cssresource request,"myResource", "ligthbox" %}
+    {% cssresource request,"formshare", "leaflet" %}
+
+{% endblock css %}
+
+{% block topScripts %}
+    {{ super() }}
+
+    {% jsresource request,"myResource", "flotResize" %}
+    {% jsresource request,"myResource", "chosen" %}
+    {% jsresource request,"myResource", "chartjs" %}
+    {% jsresource request,"formshare", "shuffle" %}
+    {% jsresource request,"myResource", "ligthbox" %}
+    {% jsresource request,"formshare", "leaflet" %}
+
+
+{% endblock topScripts %}
+
+
+
+{% block dashheader %}
+    {% if activeUser != None %}
+        <div class="row wrapper border-bottom white-bg page-heading">
+
+
+            <div class="col-lg-4">
+                <div class="m-b-md">
+                    <h2 style="display: inline-block !important;">{{ _('Formularios de Sequia MAG') }}</h2>
+                    <form name='add' method="post" action="{{ request.url }}">
+
+                        <input type="hidden" id="csrf_token" name="csrf_token"
+                               value="{{ request.session.get_csrf_token() }}">
+
+                        <select data-placeholder="Choose a Country..." class="chosen-select" tabindex="2"
+                                id="send_forms" name="send_forms">
+
+                            {% for f in fnames %}
+                                <option value="{{ f[1] }}"{% if f[2] == True %}
+                                        selected {% endif %} >{{ f[0] }}</option>
+                            {% endfor %}
+
+
+                        </select>
+
+
+                    </form>
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+    {% endif %}
+{% endblock dashheader %}
+
+{% block title %}
+    <title>Formshare - MAG Sequia</title>
+
+
+
+{% endblock title %}
+
+{% block maincontent %}
+    {#    ----------------#}
+
+    {% if data.count == 0 or not data %}
+
+        <div class="col-xs-8 text-lg-center"><i class="fa fa-frown-o fa-8x"></i>
+            <h2 class="font-bold">No existen registros para esta fecha </h2>
+            <span> Utilize el formulario en ODK Collect para ingresar los datos</span>
+
+        </div>
+
+
+    {% else %}
+
+
+        <div class="">
+            <ul class="nav nav-tabs">
+
+                <li class="active">
+                    <button id="tab1" type="button" class="btn btn-w-m btn-outline btn-primary"><i
+                            class="fa fa-chart-area"></i>
+                        Sensibilidad
+                    </button>
+                </li>
+                <li class="">
+                    <button id="tab2" type="button" class="btn btn-w-m btn-outline btn-primary "><i
+                            class="fa fa-leaf"></i>
+                        Vulnerabilidad
+                    </button>
+                </li>
+                <li class="">
+                    <button id="tab3" type="button" class="btn btn-w-m btn-outline btn-primary "><i
+                            class="fa fa-warning"></i>
+                        Amenaza
+                    </button>
+                </li>
+                <li class="">
+                    <button id="tab4" type="button" class="btn btn-w-m btn-outline btn-primary "><i
+                            class="fa fa-tasks"></i> Informes
+                    </button>
+                </li>
+            </ul>
+
+            <div id="tab-1" class="tab-pane1">
+                <br class="panel-body">
+
+
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <h1 class="m-b-xs">
+                            Maximo de registros por dia: {{ data.max }}
+                        </h1>
+                        <small>
+                            Registro diario
+                        </small>
+                        <div id="sparkline1" class="m-b-sm">
+                            <canvas style="display: inline-block; width: 508px; height: 50px; vertical-align: top;"
+                                    width="508"
+                                    height="50"></canvas>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <small class="stats-label">Promedio de envios diarios</small>
+                                <h4>{{ data.mean }}</h4>
+                            </div>
+
+                            <div class="col-4">
+                                <small class="stats-label">Dia con mas registros</small>
+                                <h5>{{ request.h.readble_date(data.max_date, "es") }}</h5>
+                            </div>
+                            <div class="col-4">
+                                <small class="stats-label">Ultimo envio</small>
+                                <h5>{{ request.h.readble_date(data.days[-1][0], "es") }}</h5>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-sm-4">
+                        <h1 class="m-b-xs">
+                            SDI Agropecuario: {{ data.sdiG }}
+                        </h1>
+                        <small>
+                            SDI por distrito
+                        </small>
+                        <div id="sparkline2" class="m-b-sm">
+                            <canvas style="display: inline-block; width: 508px; height: 50px; vertical-align: top;"
+                                    width="508"
+                                    height="50"></canvas>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <small class="stats-label">SDI Agricola</small>
+                                <h4>{{ data.sdiA }}</h4>
+                            </div>
+                            <div class="col-4">
+                                <small class="stats-label">SDI Pecuario</small>
+                                <h4>{{ data.sdiP }}</h4>
+                            </div>
+                            <div class="col-4">
+                                <small class="stats-label">Especies</small>
+                                <h4>{{ data.spc }}</h4>
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <div class="col-sm-4">
+
+
+                        <table class="table small m-t-sm">
+
+                            <thead>
+                            <tr>
+                                <th>
+                                    <div class="col-xs-6" align="left">
+                                        <h5 class="m-b-xs">Encuestas realizadas: {{ data.count }}</h5>
+                                        <h2 class="font-bold text-navy"><strong>{{ data.M }}% <i
+                                                class="fa fa-male"></i></strong> | <strong>{{ data.F }}% <i
+                                                class="fa fa-female"></i></strong></h2>
+
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="col-xs-6"
+                                         style="margin-left:auto !important; margin-right:0!important;">
+                                        <h5 class="m-b-xs">Resumen de fincas</h5>
+                                        <h2 class="font-bold text-navy"><strong>{{ data.count }} fincas <i
+                                                class="fa fa-check"></i></strong></h2>
+
+                                        <div class="font-bold text-navy"><strong>
+                                            {% for row in data.own %}
+                                                {% if row[1]!="0.0" %}
+                                                    {{ row[1] }}% {{ row[0] }} |
+                                                {% endif %}
+                                            {% endfor %}
+                                        </strong></div>
+                                    </div>
+                                </th>
+                            </tr>
+                            </thead>
+
+
+                            <tbody>
+                            <tr>
+                                <td>
+                                    <strong>{{ data.prov }}&nbsp; </strong> {{ _('Provincias') }}
+
+                                </td>
+                                <td>
+                                    <strong>{{ data.fincas.fa }}%&nbsp; </strong> {{ _('Fincas Agricolas') }}
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>{{ data.cant }}&nbsp; </strong> {{ _('Cantones') }}
+                                </td>
+                                <td>
+                                    <strong>{{ data.fincas.fg }}%&nbsp; </strong> {{ _('Fincas Ganaderas') }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>{{ data.dist }}&nbsp; </strong> {{ _('Distritos') }}
+                                </td>
+                                <td>
+                                    <strong>{{ data.fincas.fm }}%&nbsp; </strong> {{ _('Fincas Mixtas') }}
+                                    {% if data.fincas.na != "0.0" %} y {{ data.fincas.na }}% sin ninguna
+                                        actividad{% endif %}
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+
+                    </div>
+
+                </div>
+                </br>
+                <div class="row">
+                    <div id="mapbox" class="col-lg-6">
+
+                        <div id="projmap" style="height: 320px"></div>
+                        <strong>Fincas en la muestra</strong>
+                    </div>
+
+
+                    <div id="mapbox2" class="col-lg-6">
+
+                        <div id="projmap2" style="height: 320px"></div>
+                        <strong>Mapas de sensibilidad</strong>
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+        </div>
+
+        <div id="tab-2" class="tab-pane2">
+            <div class="row" id="allInformation">
+                <div class="col-md-12">
+
+                    <div class="text-center">
+
+                        <label class="btn btn-outline-primary ">
+                            <input type="radio" name="shuffle-filter" value="all"
+                                   checked="checked"/>Todos
+                        </label>
+                        <label class="btn btn-outline-primary">
+                            <input type="radio" name="shuffle-filter"
+                                   value="canton"/>Cantones
+                        </label>
+                        <label class="btn btn-outline-primary">
+                            <input type="radio" name="shuffle-filter"
+                                   value="distr"/>Distritos
+                        </label>
+
+
+                    </div>
+
+
+                    <div class="text-center ">
+
+                        <div id="grid" class="my-shuffle col-sm-12 " style="float: initial">
+
+
+                            {% for map in data.maps_v %}
+
+                                <div class="file-box feed-item "
+                                     data-groups={% if "canton" in map[1] %} '["canton"]' {% else %} '["distr"]'
+                                     {% endif %}>
+                                <div class="file">
+                                    <a href="{{ map[0] }}" download="{{ map[1] }}">
+                                        <span class="corner"></span>
+
+                                        <div class="image">
+
+                                            <a href="{{ map[0] }}" data-lightbox="image-1"
+                                               data-title="{% if "canton" in map[1] %} Vulnerabilidad Cantonal {% else %} Vulnerabilidad distrital {% endif %}">
+
+                                                <img alt="image" class="img-fluid"
+                                                     src="{{ map[0] }}">
+                                            </a>
+
+
+                                        </div>
+                                        <div class="file-name">
+
+
+                                            <small> <a href="{{ map[0] }}" download="{{ map[1] }}"><i
+                                                    class="fa fa-download"></i>&nbsp;&nbsp;{{ map[2] }}</a></small>
+
+                                        </div>
+                                    </a>
+
+
+                                </div>
+                                </div>
+
+
+                            {% endfor %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <div id="tab-3" class="tab-pane3">
+            <div class="row" id="allInformation">
+                <div class="col-md-12">
+
+                    <div class="text-center">
+
+
+                        <label class="btn btn-outline-primary ">
+                            <input type="radio" name="shuffle-filter2" value="all"
+                                   checked="checked"/>Todos
+                        </label>
+                        <label class="btn btn-outline-primary">
+                            <input type="radio" name="shuffle-filter2"
+                                   value="canton_"/>Cantones
+                        </label>
+                        <label class="btn btn-outline-primary">
+                            <input type="radio" name="shuffle-filter2"
+                                   value="distr_"/>Distritos
+                        </label>
+
+
+                    </div>
+
+                    <div class="text-center ">
+
+                        <div id="grid" class="my-shuffle2 col-sm-12 " style="float: initial">
+
+
+                            {% for map in data.maps_h %}
+
+                                <div class="file-box feed-item2 "
+                                     data-groups={% if "canton" in map[1] %} '["canton_"]' {% else %} '["distr_"]'
+                                     {% endif %}>
+                                <div class="file">
+                                    <a href="{{ map[0] }}" download="{{ map[1] }}">
+                                        <span class="corner"></span>
+
+                                        <div class="image">
+
+                                            <a href="{{ map[0] }}" data-lightbox="image-1"
+                                               data-title="{% if "canton" in map[1] %} Amenaza Cantonal {% else %} Amenaza distrital {% endif %}">
+
+                                                <img alt="image" class="img-fluid"
+                                                     src="{{ map[0] }}">
+                                            </a>
+
+
+                                        </div>
+                                        <div class="file-name">
+
+
+                                            <small> <a href="{{ map[0] }}" download="{{ map[1] }}"><i
+                                                    class="fa fa-download"></i>&nbsp;&nbsp;{{ map[2] }}</a></small>
+
+                                        </div>
+                                    </a>
+
+
+                                </div>
+                                </div>
+
+                            {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        </div>
+        </div>
+
+
+        </div>
+
+
+
+        </div>
+
+
+        <div id="small-chat" style="bottom: 40px !important;" title="Recalcular productos">
+
+
+            <span class="badge badge-warning float-right"></span>
+
+
+            <form name='add' method="post" action="{{ request.url }}">
+
+                <input type="hidden" name="csrf_token" value="{{ request.session.get_csrf_token() }}">
+                {% for f in fnames %}
+                    {% if f[2] == True %}
+                        <input type="hidden" id="current_proj" name="current_proj" value="{{ f[1] }}">
+
+
+                    {% endif %}
+                {% endfor %}
+
+
+
+                <button type="submit" name="update_products" class="btn btn-success btn-circle btn-lg"><i
+                        class="fa fa-cogs"></i>
+                </button>
+            </form>
+
+
+        </div>
+
+    {% endif %}
+{% endblock maincontent %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+                lightbox.option({
+                    'resizeDuration': 200,
+                    'wrapAround': true
+                });
+
+                $("#tab1").click(function () {
+                    $(".tab-pane1").fadeIn("slow");
+                    $(".tab-pane2").hide();
+                    $(".tab-pane3").hide();
+                });
+                $("#tab2").click(function () {
+                    $(".tab-pane1").hide();
+                    $(".tab-pane2").fadeIn("slow");
+                    $(".tab-pane3").hide();
+                });
+
+                $("#tab3").click(function () {
+                    $(".tab-pane1").hide();
+                    $(".tab-pane2").hide();
+                    $(".tab-pane3").fadeIn("slow");
+                });
+
+
+                $('.chosen-select').chosen({width: "100%"});
+
+                $('#send_forms').on('change', function () {
+                    this.form.submit();
+                });
+                {% if data != False and data.count != 0 %}
+
+                    var sparklineCharts = function () {
+                        $("#sparkline1").sparkline({{ data.n_days }}, {
+                            type: 'line',
+                            width: '100%',
+                            height: '50',
+                            lineColor: '#1ab394',
+                            fillColor: "transparent",
+                            tooltipFormat: "{{ '{{' }}offset:offset{{ '}}' }}",
+                            tooltipValueLookups: {
+                                'offset': {
+                        {% for d in data.days %}
+                            {{ loop.index -1 }}: '{{ d[1] }} registros el {{ d[0] }}',
+                        {% endfor %}
+                    }
+                    },
+
+                    })
+                        ;
+
+                        $("#sparkline2").sparkline([ {% for v in data.sdi %} {{ v[1] }},{% endfor %} ], {
+                            type: 'line',
+                            width: '100%',
+                            height: '50',
+                            lineColor: '#1ab394',
+                            fillColor: "transparent",
+                            tooltipFormat: "{{ '{{' }}offset:offset{{ '}}' }}",
+                            tooltipValueLookups: {
+                                'offset': {
+                        {% for d in data.sdi %}
+                            {{ loop.index -1 }}: '{{ d[0] }}, SDI: {{ d[1] }}',
+                        {% endfor %}
+                    }
+                    },
+                    })
+                        ;
+
+                    };
+
+                    var sparkResize;
+
+                    $(window).resize(function (e) {
+                        clearTimeout(sparkResize);
+                        sparkResize = setTimeout(sparklineCharts, 500);
+                    });
+
+                    sparklineCharts();
+
+
+                    var data1 = [
+                        [0, 4], [1, 8], [2, 5], [3, 10], [4, 4], [5, 16], [6, 5], [7, 11], [8, 6], [9, 11], [10, 20], [11, 10], [12, 13], [13, 4], [14, 7], [15, 8], [16, 12]
+                    ];
+                    var data2 = [
+                        [0, 0], [1, 2], [2, 7], [3, 4], [4, 11], [5, 4], [6, 2], [7, 5], [8, 11], [9, 5], [10, 4], [11, 1], [12, 5], [13, 2], [14, 5], [15, 2], [16, 0]
+                    ];
+                    $("#flot-dashboard5-chart").length && $.plot($("#flot-dashboard5-chart"), [
+                            data1, data2
+                        ],
+                        {
+                            series: {
+                                lines: {
+                                    show: false,
+                                    fill: true
+                                },
+
+                                splines: {
+                                    show: true,
+                                    tension: 0.4,
+                                    lineWidth: 1,
+                                    fill: 0.4
+                                },
+                                points: {
+                                    radius: 0,
+                                    show: true
+                                },
+                                shadowSize: 2
+                            },
+                            grid: {
+                                hoverable: true,
+                                clickable: true,
+
+                                borderWidth: 2,
+                                color: 'transparent'
+                            },
+                            colors: ["#1ab394", "#1C84C6"],
+                            xaxis: {},
+                            yaxis: {},
+                            tooltip: true
+                        }
+                    );
+
+
+                    var barData = {
+                        labels: [{% for s in data.sensi %} "{{ data.sensi[s].name }}",{% endfor %}],
+                        datasets: [
+                            {
+                                label: "NDVI",
+                                backgroundColor: 'rgba(220, 220, 220, 0.5)',
+                                pointBorderColor: "#fff",
+                                data: [{% for s in data.sensi %} {{ data.sensi[s].ndvi }},{% endfor %}]
+                            },
+                            {
+                                label: "Sensibilidad",
+                                backgroundColor: 'rgba(26,179,148,0.5)',
+                                borderColor: "rgba(26,179,148,0.7)",
+                                pointBackgroundColor: "rgba(26,179,148,1)",
+                                pointBorderColor: "#fff",
+                                data: [{% for s in data.sensi %} {{ data.sensi[s].ind }},{% endfor %}]
+                            }
+                        ]
+                    };
+
+                    var barOptions = {
+                        responsive: true,
+                        scales: {
+                            xAxes: [{
+                                display: false //this will remove all the x-axis grid lines
+                            }]
+                        }
+                    };
+
+
+                    //var ctx2 = document.getElementById("barChart").getContext("2d");
+                    //new Chart(ctx2, {type: 'bar', data: barData, options: barOptions});
+
+                    //shuflle vulnerabilidad
+                    var Shuffle = window.Shuffle;
+                    var jQuery = window.jQuery;
+                    var myShuffle = new Shuffle(document.querySelector('.my-shuffle'), {
+                        itemSelector: '.feed-item',
+                        sizer: '.my-sizer-element',
+                        buffer: 1,
+                    });
+
+
+                    jQuery('input[name="shuffle-filter"]').on('change', function (evt) {
+                        var input = evt.currentTarget;
+                        if (input.checked) {
+                            myShuffle.filter(input.value);
+                            //$(".forHidden").css("display", "none")
+                            //$("#options_" + input.value).css("display", "block")
+                            //$(".forRefresh").css("width","49%");
+                        }
+                    });
+
+
+                    //shuflle amenaza
+                    var myShuffle2 = new Shuffle(document.querySelector('.my-shuffle2'), {
+                        itemSelector: '.feed-item2',
+                        sizer: '.my-sizer-element2',
+                        buffer: 1,
+                    });
+
+
+                    jQuery('input[name="shuffle-filter2"]').on('change', function (evt) {
+                        var input = evt.currentTarget;
+                        if (input.checked) {
+                            myShuffle2.filter(input.value);
+                            //$(".forHidden").css("display", "none")
+                            //$("#options_" + input.value).css("display", "block")
+                            //$(".forRefresh").css("width","49%");
+                        }
+                    });
+
+
+                    //-MAP----------------
+
+                    function load_map() {
+                        //attribution &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>
+                        mymap = L.map('projmap').setView([9.62969261, -84.25128], 7);
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                            attribution: 'Fincas en la muestra',
+                            subdomains: 'abcd',
+                            maxZoom: 19
+                        }).addTo(mymap);
+
+                        var element = document.getElementById('mapbox');
+                        var full_screen = false;
+                        var normal_height = $("#projmap").height();
+                        new ResizeSensor(element, function () {
+                            var window_width = $(window).width();
+                            var element_width = element.clientWidth;
+                            if ((element_width / window_width) >= 0.80) {
+                                $("#projmap").height($(window).height() - 80);
+                                mymap.invalidateSize();
+                                //console.log('Changed to ' + element.clientWidth);
+                                full_screen = true;
+                            } else {
+                                if (full_screen) {
+                                    $("#projmap").height(normal_height);
+                                    mymap.invalidateSize();
+                                    //console.log('Back to ' + normal_height);
+                                    //console.log('Changed to ' + element.clientWidth);
+                                    full_screen = false;
+                                }
+                            }
+                        });
+                        $.getJSON("{{ request.route_url('form_download_gpspoints',userid=projectDetails.owner, projcode=projectDetails.project_code, formid=formid) }}", function (data) {
+                            var markers = [];
+                            var geojsonMarkerOptions = {
+                                fillColor: "#3467eb",
+                                opacity: 0.0,
+                                weight: 8,
+                                fillOpacity: 0.3,
+                                stroke: false
+
+                            };
+
+                            data.points.forEach(function (entry) {
+                                var latlng = L.latLng({lat: entry.lati, lng: entry.long});
+                                var marker = L.circleMarker(latlng, geojsonMarkerOptions).addTo(mymap);
+                                //marker.bindPopup("<b>" + entry.key + "</b>");
+                                marker.setRadius(8);
+                                markers.push(marker);
+                            });
+                            var group = new L.featureGroup(markers);
+                            //mymap.fitBounds(group.getBounds());
+                        });
+
+
+                        ///map 2
+
+                        mymap_S = L.map('projmap2').setView([9.62969261, -84.25128], 7);
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                            attribution: 'Mapas de sensibilidad',
+                            subdomains: 'abcd',
+
+                        }).addTo(mymap_S);
+                        op = 0.6;
+
+                        let mylayer = L.layerGroup().addTo(mymap_S);
+                        let mylayerC = L.layerGroup();
+                        $.getJSON("{{ request.route_url('sensimap',userid=activeUser.id, prj=cur_prj,div='d' ) }}", function (data) {
+
+
+                            //mymap_S.setView(L.geoJson(data).getBounds().getCenter());
+                            L.geoJson(data,
+                                {
+                                    style: function (feature) {
+                                        switch (feature.properties.classCode) {
+                                            case 10:
+                                                return {color: "#F80700", opacity: op, fillOpacity: op};
+                                            case 20:
+                                                return {color: "#FCA500", opacity: op, fillOpacity: op};
+                                            case 30:
+                                                return {color: "#008000", opacity: op, fillOpacity: op};
+                                            case 0:
+                                                return {color: "", opacity: 0, fillOpacity: 0};
+                                        }
+                                    },
+                                    onEachFeature: addMyData,
+                                }
+                            ).addTo(mymap_S);
+
+                        });
+
+
+                        $.getJSON("{{ request.route_url('sensimap',userid=activeUser.id, prj=cur_prj,div='c' ) }}", function (data) {
+
+
+                            //mymap_S.setView(L.geoJson(data).getBounds().getCenter());
+                            L.geoJson(data,
+                                {
+                                    style: function (feature) {
+                                        switch (feature.properties.classCode) {
+                                            case 10:
+                                                return {color: "#F80700", opacity: op, fillOpacity: op};
+                                            case 20:
+                                                return {color: "#FCA500", opacity: op, fillOpacity: op};
+                                            case 30:
+                                                return {color: "#008000", opacity: op, fillOpacity: op};
+                                            case 0:
+                                                return {color: "", opacity: 0, fillOpacity: 0};
+                                        }
+                                    },
+                                    onEachFeature: addMyDataC,
+                                }
+                            );
+
+                        });
+
+
+                        function addMyData(feature, layer) {
+                              layer.bindTooltip(feature.properties.NOM_DIST);
+                            mylayer.addLayer(layer);
+
+                            // some other code can go here, like adding a popup with layer.bindPopup("Hello")
+                        }
+                        function addMyDataC(feature, layer) {
+                            layer.bindTooltip(feature.properties.NAME_2);
+                            mylayerC.addLayer(layer);
+
+                            // some other code can go here, like adding a popup with layer.bindPopup("Hello")
+                        }
+
+                        let layerControl = {
+                            "Sensibilidad distrital": mylayer, // an option to show or hide the layer you created from geojson
+                            "Sensibilidad cantonal": mylayerC,
+                        };
+
+
+
+                        L.control.layers( "",layerControl).addTo( mymap_S );
+
+
+
+                        $('.leaflet-control-attribution').html("");
+
+                    }
+
+                    load_map();
+
+
+                    //--------------------
+                    //current_proj
+
+
+
+                    //setInterval(function () {
+
+                    $.ajax({
+                        url: '{{ request.route_url("status",userid=activeUser.id,prj=cur_prj) }}' + $("#current_proj").val(),
+                        type: "post",
+                        dataType: "json",
+                        data: {
+                            'csrf_token': $('#csrf_token').val(),
+                            'project_id': '{{ cur_prj }}'
+                        },
+                        success: function (data) {
+                            console.log(data.status);
+                        },
+                        error: function (e) {
+                            console.log("No se ha podido obtener la información");
+                        }
+                    });
+
+                    // }, 5000);
+                    $(".tab-pane2").hide();
+                    $(".tab-pane3").hide();
+                    $('#tab1').trigger('click');
+
+
+                {% endif %}
+
+
+            }
+        );
+    </script>
+
+{% endblock scripts %}

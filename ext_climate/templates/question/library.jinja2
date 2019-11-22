@@ -1,0 +1,77 @@
+{% extends 'dashboard/dashboard.jinja2' %}
+
+{% block title %}
+    <title>ClimMob | Questions library</title>
+{% endblock title %}
+
+{% block pageheading %}
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-lg-10">
+            <h2>Questions library</h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a href="{{ request.route_url('dashboard') }}">Dashboard</a>
+                </li>
+                <li class="active">
+                    <strong>Questions library</strong>
+                </li>
+            </ol>
+        </div>
+        <div class="col-lg-2">
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block headsidebar %}
+
+{% endblock %}
+
+{% block pagecontent %}
+    <div class="row">
+        {% if activeUser.login != "bioversity" %}
+            <div class="col-md-6">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>ClimMob library</h5>
+                    </div>
+                    <div class="ibox-content">
+                        {% snippet 'snippets/question/question-table.jinja2', request=request, UserQuestion =ClimMobQuestion, showTitle = True, showtools=False %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>User library</h5>
+                    <div class="ibox-tools">
+                        <button onclick="showIFrame('{{ request.route_url('newquestion') }}','Add question','Add question');" type="button" class="btn btn-primary btn-xs pull-right">Add question</button>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-md-12">
+                            {% snippet 'snippets/question/question-table.jinja2', request=request, UserQuestion =UserQuestion, showTitle = True, showtools=True %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-md-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>ClimMob library</h5>
+                        <div class="ibox-tools">
+                            <button onclick="showIFrame('{{ request.route_url('newquestion') }}','Add question','Add question');" type="button" class="btn btn-primary btn-xs pull-right">Add question</button>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        {% snippet 'snippets/question/question-table.jinja2', request=request, UserQuestion =UserQuestion, showtools=True %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock pagecontent %}
